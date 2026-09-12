@@ -10,7 +10,7 @@ import numpy as np
 # PATH CONFIGURATION & CUSTOM IMPORTS
 # =====================================================================
 current_dir = os.path.dirname(os.path.abspath(__file__))
-logic_dir = os.path.abspath(os.path.join(current_dir, "../../..", "Python-Learning/04_Math_Algorithms/01_Algorithm_Code/01_Matrices_and_Determinants"))
+logic_dir = os.path.abspath(os.path.join(current_dir, "../../../..", "Python-Architecture/04_Math_Algorithms/01_Algorithm_Code/01_Matrices_and_Determinants"))
 sys.path.append(logic_dir)
 
 try:

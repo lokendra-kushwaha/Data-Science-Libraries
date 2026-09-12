@@ -7,9 +7,9 @@ import random
 # PATH CONFIGURATION
 # =====================================================================
 current_dir = os.path.dirname(os.path.abspath(__file__))
-logic_dir = os.path.abspath(os.path.join(current_dir, "../../..", "Python-Learning/04_Math_Algorithms/01_Algorithm_Code/01_Matrices_and_Determinants"))
+logic_dir = os.path.abspath(os.path.join(current_dir, "../../../..", "Python-Architecture/04_Math_Algorithms/01_Algorithm_Code/01_Matrices_and_Determinants"))
 sys.path.append(logic_dir)
-
+print(logic_dir)
 try:
     from matrix_operation import Matrix # type: ignore
 except ImportError:
@@ -44,15 +44,22 @@ class SimpleNeuralNetwork:
             [random.uniform(-1.0, 1.0) for _ in range(hidden_neurons)] 
             for _ in range(input_features)
         ]
-        
+
         # Store weights as a custom Matrix object for future dot products
         self.weights = Matrix(input_features, hidden_neurons, data=random_weights)
+        # Initialize bias with random values (one for each hidden neuron)
+        self.bias = [random.uniform(-1.0, 1.0) for _ in range(hidden_neurons)]
         
         print(f"[Network] Booted! Architecture: {input_features} Inputs -> {hidden_neurons} Hidden Neurons.")
 
     def sigmoid_activation(self, Z_matrix):
         """
         Applies the Sigmoid activation function to squash values between 0 and 1.
+        
+        This robust version includes a mathematical safety valve (clipping) to 
+        prevent 'OverflowError: math range error'. When processing massive data 
+        arrays (like flattened CNN image pixels), the dot product can result in 
+        extremely large positive or negative numbers that crash Python's math.exp().
 
         Math: f(x) = 1 / (1 + e^-x)
 
@@ -60,12 +67,29 @@ class SimpleNeuralNetwork:
             Z_matrix (Matrix): The raw output from the dot product (X . W).
 
         Returns:
-            list: A 2D list of activated probabilities.
+            list: A 2D list of activated probabilities (safely bounded between 0.0 and 1.0).
         """
-        activated_data = [
-            [1 / (1 + math.exp(-float(val))) for val in row] 
-            for row in Z_matrix.matrix
-        ]
+        activated_data = []
+        
+        for row in Z_matrix.matrix:
+            new_row = []
+            for val in row:
+                v = float(val)
+                
+                # Safety Valve: Prevent math.exp() from overflowing
+                # math.exp() crashes if the input is less than approx -709
+                if v < -700:
+                    # If the value is extremely negative, probability is effectively 0%
+                    new_row.append(0.0)
+                elif v > 700:
+                    # If the value is extremely positive, probability is effectively 100%
+                    new_row.append(1.0)
+                else:
+                    # Safe range: calculate normal Sigmoid
+                    new_row.append(1.0 / (1.0 + math.exp(-v)))
+                    
+            activated_data.append(new_row)
+            
         return activated_data
 
     def forward(self, X_input):
@@ -84,9 +108,17 @@ class SimpleNeuralNetwork:
         """
         # Step 1: Multiply Input data by current Weights
         Z = Matrix.multiply(X_input, self.weights)
-        
-        # Step 2: Convert raw scores into probabilities (0 to 1)
-        output = self.sigmoid_activation(Z)
+
+        # Step 1.5: Add Bias to the result (Z = Z + Bias)
+        Z_with_bias = [
+            [z_val + b_val for z_val, b_val in zip(z_row, self.bias)]
+            for z_row in Z.matrix
+        ]
+
+        Z_biased_matrix = Matrix(len(Z_with_bias), len(Z_with_bias[0]), data=Z_with_bias)
+
+        # Step 2: Convert raw scores into probabilities
+        output = self.sigmoid_activation(Z_biased_matrix)
         
         return output
 
@@ -138,6 +170,14 @@ class SimpleNeuralNetwork:
         
         # Save the newly learned weights back to the class state
         self.weights = Matrix(len(updated_weights), len(updated_weights[0]), data=updated_weights)
+
+        # Step 5: Update the Bias 
+        # (Bias gradient is just the sum of gradients across all training examples)
+        bias_deltas = [sum(col) for col in zip(*gradient_data)]
+        
+        self.bias = [
+            b_val + bd_val for b_val, bd_val in zip(self.bias, bias_deltas)
+        ]
 
     def train(self, X_input, Y_true, epochs=1000, learning_rate=0.1):
         """
