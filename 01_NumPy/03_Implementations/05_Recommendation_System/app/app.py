@@ -1,13 +1,20 @@
+import sys
+import os
+
+# 1. Path Fix for Streamlit Cloud
+current_dir = os.path.dirname(os.path.abspath(__file__))
+parent_dir = os.path.abspath(os.path.join(current_dir, '..'))
+
+# 2. Forcefully adding directories to Python's VIP search list
+sys.path.insert(0, parent_dir)
+sys.path.insert(0, current_dir)
+
+import streamlit as st
+import pickle
 import streamlit as st
 import pickle
 import requests
 from recommender import get_recommendations
-import sys
-import os
-
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-PARENT_DIR = os.path.abspath(os.path.join(BASE_DIR, '..'))
-sys.path.append(PARENT_DIR)
 
 # Set page configuration for a wider layout
 st.set_page_config(page_title="Movie Recommender", layout="wide")
@@ -79,8 +86,8 @@ st.markdown("<h1 class='main-title'>Movie Recommendation Engine 🍿</h1>", unsa
 st.markdown("<p class='sub-title'>Discover your next favorite movie based on your tastes!</p>", unsafe_allow_html=True)
 
 # Load the saved pickle data files
-movies_file_path = os.path.join(BASE_DIR, 'movies.pkl')
-matrix_file_path = os.path.join(BASE_DIR, 'matrix.pkl')
+movies_file_path = os.path.join(current_dir, 'movies.pkl')
+matrix_file_path = os.path.join(current_dir, 'matrix.pkl')
 
 movies = pickle.load(open(movies_file_path, 'rb'))
 matrix = pickle.load(open(matrix_file_path, 'rb'))
