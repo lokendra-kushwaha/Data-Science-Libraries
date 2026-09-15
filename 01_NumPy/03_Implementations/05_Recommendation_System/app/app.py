@@ -2,6 +2,12 @@ import streamlit as st
 import pickle
 import requests
 from recommender import get_recommendations
+import sys
+import os
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+PARENT_DIR = os.path.abspath(os.path.join(BASE_DIR, '..'))
+sys.path.append(PARENT_DIR)
 
 # Set page configuration for a wider layout
 st.set_page_config(page_title="Movie Recommender", layout="wide")
@@ -73,8 +79,11 @@ st.markdown("<h1 class='main-title'>Movie Recommendation Engine 🍿</h1>", unsa
 st.markdown("<p class='sub-title'>Discover your next favorite movie based on your tastes!</p>", unsafe_allow_html=True)
 
 # Load the saved pickle data files
-movies = pickle.load(open('movies.pkl', 'rb'))
-matrix = pickle.load(open('matrix.pkl', 'rb'))
+movies_file_path = os.path.join(BASE_DIR, 'movies.pkl')
+matrix_file_path = os.path.join(BASE_DIR, 'matrix.pkl')
+
+movies = pickle.load(open(movies_file_path, 'rb'))
+matrix = pickle.load(open(matrix_file_path, 'rb'))
 
 movie_names = movies['title'].values
 
@@ -107,3 +116,4 @@ if st.button("Get Recommendations"):
         st.error("Sorry, we couldn't find any recommendations for this movie.")
 
 st.markdown("<div class='footer'>Developed with ❤️ by Lokendra Kushwaha</div>", unsafe_allow_html=True)
+
