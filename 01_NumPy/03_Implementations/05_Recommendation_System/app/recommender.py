@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 import difflib
 
-def get_recommendations(movie_name: str, cleaned_df: pd.DataFrame, vector_matrix: np.ndarray, top_n: int = 5) -> list:
+def get_recommendations(movie_name: str, cleaned_df: pd.DataFrame, vector_matrix: np.ndarray) -> list:
     """
     Finds the closest matching movie title and calculates cosine similarity
     to recommend the top N similar movies.
@@ -48,7 +48,7 @@ def get_recommendations(movie_name: str, cleaned_df: pd.DataFrame, vector_matrix
     sorted_scores = sorted(scores_with_index, reverse=True, key=lambda x: x[1])
     
     # 6. Extract Top N Recommendations
-    top_movies_data = sorted_scores[1:top_n+1]
+    top_movies_data = sorted_scores[1:11]
     
     recommended_titles = []
     

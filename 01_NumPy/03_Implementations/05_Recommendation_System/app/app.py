@@ -23,7 +23,81 @@ st.set_page_config(page_title="Movie Recommender", layout="wide")
 # Inject Custom CSS for styling the web app
 st.markdown("""
     <style>
-    /* Styling for the footer with your name */
+    /* =========================================
+       1. THE GRID SYSTEM (Responsive Layout)
+       ========================================= */
+    .poster-container {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr); /* Mobile: 2 posters per row */
+        gap: 15px;
+        margin-bottom: 20px;
+    }
+
+    /* Desktop/Tablet: 5 posters per row */
+    @media (min-width: 768px) {
+        .poster-container {
+            grid-template-columns: repeat(5, 1fr); 
+            gap: 20px;
+        }
+    }
+
+    /* =========================================
+       2. MOVIE CARD STYLING (Hover & Shadows)
+       ========================================= */
+    .movie-card {
+        text-align: center;
+        border-radius: 12px;
+        padding: 6px;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        background-color: transparent;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        height: 100%;
+    }
+
+    .movie-card:hover {
+        transform: translateY(-8px); /* Pop effect on hover */
+    }
+
+    .movie-poster {
+        width: 100%;
+        border-radius: 10px; /* Smooth rounded edges */
+        box-shadow: 0 4px 10px rgba(0,0,0,0.25); /* Premium shadow */
+        margin-bottom: 12px;
+        object-fit: cover;
+    }
+
+    .movie-title-card {
+        font-size: clamp(14px, 2vw, 18px); /* Auto-adjusts size based on screen */
+        font-weight: 800;
+        color: #1f2937; /* Premium Dark Gray */
+        line-height: 1.3;
+        letter-spacing: 0.3px;
+        
+        /* The Magic: Keeps all cards equal height & adds '...' for long text */
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        min-height: 42px; /* Reserves space for 2 lines */
+    }
+
+    /* =========================================
+       4. HIDE STREAMLIT'S DEFAULT UI (WATERMARKS)
+       ========================================= */
+        #MainMenu {visibility: hidden;}
+        footer {visibility: hidden;}
+        header {visibility: hidden;}
+        
+        .block-container {
+            padding-top: 2rem;
+    }
+
+    /* =========================================
+       5. FOOTER STYLING
+       ========================================= */
     .footer {
         position: fixed;
         left: 0;
@@ -35,45 +109,9 @@ st.markdown("""
         padding: 12px;
         font-size: 1.1rem;
         font-weight: bold;
-        border-top: 3px solid #E50914;
+        border-top: 3px solid #E50914; /* Netflix Red border */
         z-index: 100;
     }
-
-    .movie-card {
-        text-align: center;
-        border-radius: 12px;
-        padding: 8px;
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
-        background-color: transparent;
-    }
-
-    .movie-card:hover {
-        transform: translateY(-10px); /* Moves the card up slightly */
-    }
-
-    .movie-poster {
-        width: 100%;
-        border-radius: 12px; /* Rounded corners for the image */
-        box-shadow: 0 6px 12px rgba(0,0,0,0.2); /* Soft shadow */
-        margin-bottom: 10px;
-    }
-
-    .movie-title-card {
-        font-size: 20px;
-        font-weight: 800;
-        color: #1f2937; /* Premium Dark Gray */
-        margin-top: 12px;
-        line-height: 1.4;
-        letter-spacing: 0.3px;
-        
-        /* : Keeps all cards same height and adds '...' for long names */
-        display: -webkit-box;
-        -webkit-line-clamp: 2;
-        -webkit-box-orient: vertical;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        min-height: 42px; /* Space reserved for exactly 2 lines */
-        }
     </style>
 """, unsafe_allow_html=True)
 
@@ -137,13 +175,14 @@ else:
 # 3. Auto-Trigger Logic (Runs when a movie is selected/searched)
 if final_movie:
     
+    # --- AI CORRECTION LOGIC ---
     # Find the closest matching movie in our database
     close_matches = difflib.get_close_matches(final_movie, movie_names, n=1)
     
     if close_matches:
         corrected_movie = close_matches[0]
         
-        # Check if the spelling was exact or if AI corrected it
+        # Check if the spelling was exact or if the AI corrected it
         if final_movie.lower() == corrected_movie.lower():
             # Perfect spelling
             display_message = f"Because you liked '{corrected_movie}', we recommend:"
@@ -165,27 +204,27 @@ if final_movie:
         recs = get_recommendations(corrected_movie, cleaned_df=movies, vector_matrix=matrix)
         
         if recs:
-            # Create 5 columns to display posters side by side
-            cols = st.columns(5)
+            cards_html = "<div class='poster-container'>"
             
-            # Loop through the columns and recommendations
-            for i in range(5):
-                with cols[i]:
-                    poster_url = fetch_poster(recs[i])
-                    movie_name = recs[i]
-                    
-                    card_html = f"""
-                        <div class="movie-card">
-                            <img src="{poster_url}" class="movie-poster" alt="{movie_name}">
-                            <div class="movie-title-card">{movie_name}</div>
-                        </div>
-                    """
-                    st.markdown(card_html, unsafe_allow_html=True)
+            # Loop through the recommendations
+            for i in range(10):
+                poster_url = fetch_poster(recs[i])
+                movie_name = recs[i]
+                
+                # Append each card to the container
+                cards_html += f"""
+<div class="movie-card">
+<img src="{poster_url}" class="movie-poster" alt="{movie_name}">
+<div class="movie-title-card">{movie_name}</div>
+</div>
+                """
+            
+            cards_html += "</div>" # Close the grid container
+            st.markdown(cards_html, unsafe_allow_html=True)
                     
     else:
         # If the spelling is completely unrecognizable
         st.error(f"Sorry, we couldn't find any match for '{final_movie}'. Please try another spelling!")
-
 
 # 4. DEFAULT LANDING PAGE (Runs when no movie is searched yet)
 else:
@@ -195,43 +234,31 @@ else:
         unsafe_allow_html=True
     )
     
-    # Top 10 default movies to display (2 rows of 5)
+    # Top 10 default movies to display
     default_movies = [
         "Inception", "The Dark Knight", "Interstellar", "The Matrix", "The Avengers",
         "Titanic", "Avatar", "The Shawshank Redemption", "Jurassic Park", "Spider-Man"
     ]
     
-    # --- ROW 1 (First 5 Movies) ---
-    cols1 = st.columns(5)
-    for i in range(5):
-        with cols1[i]:
-            poster_url = fetch_poster(default_movies[i])
-            movie_name = default_movies[i]
-            
-            card_html = f"""
-                <div class="movie-card">
-                    <img src="{poster_url}" class="movie-poster" alt="{movie_name}">
-                    <div class="movie-title-card">{movie_name}</div>
-                </div>
-            """
-            st.markdown(card_html, unsafe_allow_html=True)
+    cards_html = "<div class='poster-container'>"
+    
+    for i in range(10):
+        poster_url = fetch_poster(default_movies[i])
+        movie_name = default_movies[i]
+        
+        # Append each card to the container
+        cards_html += f"""
+<div class="movie-card">
+<img src="{poster_url}" class="movie-poster" alt="{movie_name}">
+<div class="movie-title-card">{movie_name}</div>
+</div>
+        """
+        
+    cards_html += "</div>" # Close the grid container
+    st.markdown(cards_html, unsafe_allow_html=True)
 
-    st.markdown("<br>", unsafe_allow_html=True)
+# Footer 
+st.markdown("<div class='footer'>Developed with ❤️ by Lokendra Kushwaha</div>", unsafe_allow_html=True)
 
-    # --- ROW 2 (Next 5 Movies) ---
-    cols2 = st.columns(5)
-    for i in range(5, 10):
-        with cols2[i - 5]:
-            poster_url = fetch_poster(default_movies[i])
-            movie_name = default_movies[i]
-            
-            card_html = f"""
-                <div class="movie-card">
-                    <img src="{poster_url}" class="movie-poster" alt="{movie_name}">
-                    <div class="movie-title-card">{movie_name}</div>
-                </div>
-            """
-            st.markdown(card_html, unsafe_allow_html=True)
 
-# Footer
-st.markdown("<div class='footer' style='text-align:center; margin-top:50px;'>Developed with ❤️ by Lokendra Kushwaha</div>", unsafe_allow_html=True)
+
