@@ -96,6 +96,7 @@ st.markdown("""
     /* =========================================
        5. FOOTER STYLING
        ========================================= */
+
     .footer {
         position: fixed;
         left: 0;
@@ -103,13 +104,24 @@ st.markdown("""
         width: 100%;
         background-color: #f1f3f6;
         color: #333;
-        text-align: center;
-        padding: 12px;
-        font-size: 1.1rem;
         font-weight: bold;
-        border-top: 3px solid #E50914; /* Netflix Red border */
+        border-top: 3px solid #E50914; 
         z-index: 100;
+        text-align: center;
+        padding: 12px; /* normal padding on PC */
+        font-size: 1.1rem;
     }
+
+    /* =========================================
+       6. MOBILE FIX (Only for mobile)
+       ========================================= */
+    @media (max-width: 768px) {
+        .footer {
+            text-align: left;
+            padding: 12px 90px 12px 20px;
+            font-size: 0.85rem;
+        }
+    }}
     </style>
 """, unsafe_allow_html=True)
 
