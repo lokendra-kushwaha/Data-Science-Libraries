@@ -85,15 +85,13 @@ st.markdown("""
     }
 
     /* =========================================
-       4. HIDE STREAMLIT'S DEFAULT UI (WATERMARKS)
+       4. HIDE STREAMLIT'S DEFAULT UI 
        ========================================= */
-        #MainMenu {visibility: hidden;}
-        footer {visibility: hidden;}
-        header {visibility: hidden;}
-        
-        .block-container {
-            padding-top: 2rem;
-    }
+        #MainMenu {display: none !important;}
+        footer {display: none !important;}
+        header {display: none !important;}
+        [data-testid="stHeader"] {display: none !important;}
+        [data-testid="stToolbar"] {display: none !important;}
 
     /* =========================================
        5. FOOTER STYLING
@@ -116,6 +114,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # Function to fetch movie poster from OMDb API
+@st.cache_data
 def fetch_poster(movie_title):
     url = f"https://www.omdbapi.com/?t={movie_title}&apikey=c5bf42ab"
     response = requests.get(url)
@@ -257,8 +256,29 @@ else:
     cards_html += "</div>" # Close the grid container
     st.markdown(cards_html, unsafe_allow_html=True)
 
-# Footer 
+# 5. FIXED GENRE ROWS
+
+def display_movie_row(section_title, movies_list):
+    st.markdown(f"<div style='text-align: left; color: #1f2937; font-weight: 800; padding-top: 35px; padding-bottom: 10px; font-size: clamp(1.1rem, 2.5vw, 1.3rem);'>{section_title}</div>", unsafe_allow_html=True)
+    
+    row_html = "<div class='poster-container'>"
+    for movie in movies_list:
+        poster_url = fetch_poster(movie)
+        row_html += f"""<div class="movie-card">
+<img src="{poster_url}" class="movie-poster" alt="{movie}">
+<div class="movie-title-card">{movie}</div>
+</div>"""
+    row_html += "</div>"
+    
+    st.markdown(row_html, unsafe_allow_html=True)
+
+scifi_movies = ["Interstellar", "Inception", "The Matrix", "Gravity", "The Martian"]
+romance_movies = ["The Notebook", "Titanic", "A Walk to Remember", "La La Land", "Pride & Prejudice"]
+thriller_movies = ["Shutter Island", "Memento", "The Prestige", "Gone Girl", "Prisoners"]
+
+display_movie_row("🚀 Sci-Fi & Space Adventures", scifi_movies)
+display_movie_row("💖 Epic Romance", romance_movies)
+display_movie_row("🤯 Mind-Bending Thrillers", thriller_movies)
+
+# 6. Footer 
 st.markdown("<div class='footer'>Developed with ❤️ by Lokendra Kushwaha</div>", unsafe_allow_html=True)
-
-
-
