@@ -139,7 +139,7 @@ def fetch_poster(movie_title):
 
 # Display the styled Title and Subtitle
 st.markdown(
-    "<div style='text-align: center; font-weight: 800; font-size: clamp(1.2rem, 5vw, 3rem); word-break: keep-all; padding-bottom: 0.2rem; color: #E50914;'>Movie Recommendation Engine 🍿</div>", 
+    "<div style='text-align: center; font-weight: 800; font-size: clamp(1.2rem, 5vw, 3rem); word-break: keep-all; padding-bottom: 0.2rem; color: #E50914;'>The Movie Matrix 🍿</div>", 
     unsafe_allow_html=True
 )
 
